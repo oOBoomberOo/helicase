@@ -1,0 +1,13 @@
+helicase
+ |-endonuclease
+
+endonuclease:
+ |-lexer
+    |- command symbol
+	|- bracket symbol
+	|- string symbol
+	|- number symbol
+	|- operation symbol
+	|- compiled symbol
+ |-interpreter
+ |-compiler
