@@ -45,7 +45,7 @@ pub fn lex(stream: &mut TokenStream) -> Vec<LexResult<Token>> {
 
 		if token.is_linebreak() {
 			let span = index.into();
-			let value = token.to_owned();
+			let value = token.to_string();
 			let value = Token::Linebreak { span, value };
 			result.push(Ok(value));
 			stream.next();

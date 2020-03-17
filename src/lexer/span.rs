@@ -38,6 +38,11 @@ impl From<&usize> for Span {
 use std::fmt;
 impl fmt::Debug for Span {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		write!(f, "{:?}..{:?}", self.start, self.end)
+	}
+}
+impl fmt::Display for Span {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		write!(f, "{}..{}", self.start, self.end)
 	}
 }
@@ -100,5 +105,17 @@ impl Sub<usize> for Span {
 impl SubAssign<usize> for Span {
 	fn sub_assign(&mut self, rhs: usize) {
 		self.end -= rhs;
+	}
+}
+
+impl From<Span> for Range<usize> {
+	fn from(span: Span) -> Self {
+		span.start..span.end
+	}
+}
+
+impl From<&Span> for Range<usize> {
+	fn from(span: &Span) -> Self {
+		span.start..span.end
 	}
 }

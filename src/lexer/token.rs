@@ -6,7 +6,7 @@ pub enum Token {
 	Ident { span: Span, value: String },
 	Number { span: Span, value: String },
 	Whitespace { span: Span, value: String },
-	Linebreak { span: Span, value: char },
+	Linebreak { span: Span, value: String },
 	Symbol { span: Span, value: String },
 	String { span: Span, value: String },
 }
@@ -35,15 +35,15 @@ impl Token {
 		}
 	}
 
-	pub fn value(&self) -> Option<String> {
+	pub fn value(&self) -> Option<&str> {
 		match self {
 			Token::End => None,
 			Token::Ident { value, .. }
 			| Token::Number { value, .. }
 			| Token::Whitespace { value, .. }
 			| Token::Symbol { value, .. }
-			| Token::String { value, .. } => Some(value.to_owned()),
-			Token::Linebreak { value, .. } => Some(value.to_string())
+			| Token::String { value, .. }
+			| Token::Linebreak { value, .. }=> Some(value),
 		}
 	}
 
@@ -56,6 +56,23 @@ impl Token {
 			Token::Linebreak { .. } => TokenKind::Linebreak,
 			Token::Symbol { .. } => TokenKind::Symbol,
 			Token::String { .. } => TokenKind::String,
+		}
+	}
+
+	pub fn is_linebreak(&self) -> bool {
+		match self {
+			Token::Linebreak {..} | Token::End => true,
+			_ => false
+		}
+	}
+}
+
+use std::fmt;
+impl fmt::Display for Token {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		match self {
+			Token::End => write!(f, ""),
+			other => write!(f, "{}", other.value().unwrap())
 		}
 	}
 }

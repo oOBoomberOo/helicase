@@ -1,28 +1,36 @@
 use crate::lexer::prelude::{Token, TokenKind};
 
 mod command_parser;
-
 use command_parser::CommandParser;
 
 mod error;
 use error::ParseResult;
-
 use prelude::*;
 
 #[derive(Debug, Default)]
 pub struct Context {}
 
+/// Lifetime is getting confusing...
 pub trait Parser {
-	fn parse(stream: &mut ParseStream, context: &mut Context) -> ParseResult;
+	fn parse(self, stream: &mut ParseStream, context: &mut Context)
+		-> ParseResult<Box<dyn Parser>>;
 }
 
-pub fn parse(tokens: &[Token]) -> Vec<ParseResult> {
+pub trait ParserError {
+	fn diagnos(&self, file: FileId) -> Diagnostic<FileId>;
+}
+
+pub fn parse(tokens: &[Token]) -> Vec<ParseResult<()>> {
 	let stream = &mut tokens.iter().peekable();
 	let context = &mut Context::default();
 	let mut result = Vec::default();
-	while let Some(token) = stream.peek(){
+	while let Some(token) = stream.peek() {
 		if token.kind() == TokenKind::Ident {
-			result.push(CommandParser::parse(stream, context));
+			let parse_result = CommandParser.parse(stream, context).map(|_| ());
+			result.push(parse_result);
+		}
+		else {
+			stream.next();
 		}
 	}
 
@@ -34,6 +42,9 @@ pub mod prelude {
 	use std::iter::Peekable;
 	use std::slice::Iter;
 	pub type ParseStream<'megumin> = Peekable<Iter<'megumin, Token>>;
-	pub use super::{Parser, Context};
-	pub use super::error::{ParseResult, ParseError};
+	pub use super::error::{ParseError, ParseResult};
+	pub use super::{Context, Parser, ParserError};
+
+	pub use codespan::FileId;
+	pub use codespan_reporting::diagnostic::{Diagnostic, Label, LabelStyle};
 }
