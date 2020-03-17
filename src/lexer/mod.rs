@@ -1,14 +1,16 @@
 // Lexers
 mod command_lexer;
+mod selector_lexer;
 mod string_lexer;
 mod vector_lexer;
 mod whitespace_lexer;
-mod selector_lexer;
+mod symbol_lexer;
 
 use command_lexer::CommandLexer;
+use selector_lexer::SelectorLexer;
 use vector_lexer::VectorLexer;
 use whitespace_lexer::WhitespaceLexer;
-use selector_lexer::SelectorLexer;
+use symbol_lexer::SymbolLexer;
 
 // Utils
 mod error;
@@ -51,10 +53,11 @@ pub fn lex(stream: &mut TokenStream) -> Vec<LexResult<Token>> {
 			let value = Token::Linebreak { span, value };
 			result.push(Ok(value));
 			stream.next();
+		} else if token.is_symbol() {
+			result.push(SymbolLexer::lex(stream, &mut context));
 		} else if token.is_selector() {
 			result.push(SelectorLexer::lex(stream, &mut context));
-		}
-		else if token.is_alphabetic() {
+		} else if token.is_alphabetic() {
 			result.push(CommandLexer::lex(stream, &mut context));
 		} else if token.is_whitespace() {
 			result.push(WhitespaceLexer::lex(stream, &mut context));
@@ -77,9 +80,11 @@ pub trait ExtendedChar {
 	fn is_linebreak(&self) -> bool;
 
 	/// Check if token is an entity selector
-	/// 
+	///
 	/// わははは-！
 	fn is_selector(&self) -> bool;
+
+	fn is_symbol(&self) -> bool;
 }
 
 impl ExtendedChar for char {
@@ -93,6 +98,16 @@ impl ExtendedChar for char {
 
 	fn is_selector(&self) -> bool {
 		*self == '@'
+	}
+
+	fn is_symbol(&self) -> bool {
+		*self == '['
+			|| *self == ']'
+			|| *self == '{'
+			|| *self == '}'
+			|| *self == ':'
+			|| *self == '='
+			|| *self == '!'
 	}
 }
 

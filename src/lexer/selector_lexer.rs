@@ -4,19 +4,16 @@ pub struct SelectorLexer;
 
 impl Lexer for SelectorLexer {
 	fn lex(stream: &mut TokenStream, _context: &mut Context) -> LexResult<Token> {
-		let start = get_pos![stream];
+		let pos = get_pos![stream];
+		let span = Span::from(pos);
 
-		if let Some(item) = stream.next() {
-			let (_, token) = item;
-			
-		}
-		else {
+		let kind = match stream.next() {
+			None => return Err(LexError::IncompleteSelector { span }),
+			Some((_, token)) => SelectorKind::new(&token.to_string())
+		};
 
-		}
-
-		let mut end = start;
-
-		todo!()
+		let result = Token::Selector { span, kind };
+		Ok(result)
 	}
 }
 

@@ -1,5 +1,5 @@
 use super::prelude::*;
-use super::selector_lexer::{SelectorKind, Predicate};
+use super::selector_lexer::{SelectorKind};
 
 #[derive(Debug)]
 pub enum Token {
@@ -9,5 +9,6 @@ pub enum Token {
 	Number { span: Span, value: String },
 	Whitespace { span: Span, value: String },
 	Linebreak { span: Span, value: char },
-	Selector { span: Span, kind: SelectorKind, predicate: Predicate }
+	Selector { span: Span, kind: SelectorKind },
+	Symbol { span: Span, value: String }
 }
