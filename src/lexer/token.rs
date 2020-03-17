@@ -7,5 +7,6 @@ pub enum Token {
 	Number { span: Span, value: String },
 	Whitespace { span: Span, value: String },
 	Linebreak { span: Span, value: char },
-	Symbol { span: Span, value: String }
+	Symbol { span: Span, value: String },
+	String { span: Span, value: String }
 }

@@ -1,14 +1,15 @@
 // Lexers
 mod command_lexer;
 mod string_lexer;
+mod symbol_lexer;
 mod vector_lexer;
 mod whitespace_lexer;
-mod symbol_lexer;
 
 use command_lexer::CommandLexer;
+use string_lexer::{DoubleStringLexer, SingleStringLexer};
+use symbol_lexer::SymbolLexer;
 use vector_lexer::VectorLexer;
 use whitespace_lexer::WhitespaceLexer;
-use symbol_lexer::SymbolLexer;
 
 // Utils
 mod error;
@@ -41,7 +42,7 @@ pub struct Context {}
 
 pub fn lex(stream: &mut TokenStream) -> Vec<LexResult<Token>> {
 	let mut result = Vec::default();
-	let mut context = Context::default();
+	let context = &mut Context::default();
 	while let Some(item) = stream.peek() {
 		let (index, token) = item;
 
@@ -51,14 +52,18 @@ pub fn lex(stream: &mut TokenStream) -> Vec<LexResult<Token>> {
 			let value = Token::Linebreak { span, value };
 			result.push(Ok(value));
 			stream.next();
+		} else if *token == '"' {
+			result.push(DoubleStringLexer::lex(stream, context));
+		} else if *token == '\'' {
+			result.push(SingleStringLexer::lex(stream, context));
 		} else if token.is_symbol() {
-			result.push(SymbolLexer::lex(stream, &mut context));
+			result.push(SymbolLexer::lex(stream, context));
 		} else if token.is_alphabetic() {
-			result.push(CommandLexer::lex(stream, &mut context));
+			result.push(CommandLexer::lex(stream, context));
 		} else if token.is_whitespace() {
-			result.push(WhitespaceLexer::lex(stream, &mut context));
+			result.push(WhitespaceLexer::lex(stream, context));
 		} else if token.is_vector() {
-			result.push(VectorLexer::lex(stream, &mut context));
+			result.push(VectorLexer::lex(stream, context));
 		} else {
 			stream.next();
 		}
