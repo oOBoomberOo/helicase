@@ -17,15 +17,12 @@ mod span;
 mod token;
 mod utils;
 
-pub use error::LexError;
-pub use span::Span;
-pub use token::Token;
-
 use std::iter::Peekable;
 use std::str::CharIndices;
 
+use prelude::*;
+
 pub type TokenStream<'a> = Peekable<CharIndices<'a>>;
-pub type LexResult<T> = Result<T, LexError>;
 
 /// This trait handle lexing behavior of all lexer
 ///
@@ -105,8 +102,11 @@ impl ExtendedChar for char {
 	}
 }
 
-mod prelude {
-	pub use super::{Context, LexError, LexResult, Span, Token, TokenStream};
+pub mod prelude {
+	pub use super::{Context, TokenStream};
+	pub use super::error::{LexResult, LexError};
+	pub use super::span::Span;
+	pub use super::token::{Token, TokenKind};
 	pub use super::{ExtendedChar, Lexer};
 	pub use crate::get_pos;
 }
