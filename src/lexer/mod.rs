@@ -108,6 +108,7 @@ impl ExtendedChar for char {
 			|| *self == ':'
 			|| *self == '='
 			|| *self == '!'
+			|| *self == '#'
 	}
 }
 
