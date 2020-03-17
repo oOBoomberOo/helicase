@@ -1,13 +1,11 @@
 // Lexers
 mod command_lexer;
-mod selector_lexer;
 mod string_lexer;
 mod vector_lexer;
 mod whitespace_lexer;
 mod symbol_lexer;
 
 use command_lexer::CommandLexer;
-use selector_lexer::SelectorLexer;
 use vector_lexer::VectorLexer;
 use whitespace_lexer::WhitespaceLexer;
 use symbol_lexer::SymbolLexer;
@@ -55,8 +53,6 @@ pub fn lex(stream: &mut TokenStream) -> Vec<LexResult<Token>> {
 			stream.next();
 		} else if token.is_symbol() {
 			result.push(SymbolLexer::lex(stream, &mut context));
-		} else if token.is_selector() {
-			result.push(SelectorLexer::lex(stream, &mut context));
 		} else if token.is_alphabetic() {
 			result.push(CommandLexer::lex(stream, &mut context));
 		} else if token.is_whitespace() {
@@ -79,11 +75,6 @@ pub trait ExtendedChar {
 
 	fn is_linebreak(&self) -> bool;
 
-	/// Check if token is an entity selector
-	///
-	/// わははは-！
-	fn is_selector(&self) -> bool;
-
 	fn is_symbol(&self) -> bool;
 }
 
@@ -96,10 +87,6 @@ impl ExtendedChar for char {
 		*self == '\n'
 	}
 
-	fn is_selector(&self) -> bool {
-		*self == '@'
-	}
-
 	fn is_symbol(&self) -> bool {
 		*self == '['
 			|| *self == ']'
@@ -109,6 +96,7 @@ impl ExtendedChar for char {
 			|| *self == '='
 			|| *self == '!'
 			|| *self == '#'
+			|| *self == '@'
 	}
 }
 
