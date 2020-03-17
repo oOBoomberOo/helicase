@@ -108,6 +108,44 @@ impl SubAssign<usize> for Span {
 	}
 }
 
+
+impl Add<Span> for &Span {
+	type Output = Span;
+	fn add(self, rhs: Span) -> Span {
+		Span {
+			start: self.start + rhs.start,
+			end: self.end + rhs.end
+		}
+	}
+}
+impl Add<usize> for &Span {
+	type Output = Span;
+	fn add(self, rhs: usize) -> Span {
+		Span {
+			start: self.start,
+			end: self.end + rhs
+		}
+	}
+}
+impl Sub<Span> for &Span {
+	type Output = Span;
+	fn sub(self, rhs: Span) -> Span {
+		Span {
+			start: self.start - rhs.start,
+			end: self.end - rhs.end
+		}
+	}
+}
+impl Sub<usize> for &Span {
+	type Output = Span;
+	fn sub(self, rhs: usize) -> Span {
+		Span {
+			start: self.start,
+			end: self.end - rhs
+		}
+	}
+}
+
 impl From<Span> for Range<usize> {
 	fn from(span: Span) -> Self {
 		span.start..span.end

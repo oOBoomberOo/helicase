@@ -17,7 +17,7 @@ pub trait Parser {
 }
 
 pub trait ParserError {
-	fn diagnos(&self, file: FileId) -> Diagnostic<FileId>;
+	fn diagnos(&self, file: usize) -> Diagnostic<usize>;
 }
 
 pub fn parse(tokens: &[Token]) -> Vec<ParseResult<()>> {

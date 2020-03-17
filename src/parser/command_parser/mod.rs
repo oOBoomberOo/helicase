@@ -15,7 +15,10 @@ impl Parser for CommandParser {
 			match command.value() {
 				Some("say") => SayCommand::default().parse(stream, context),
 				Some("me") => MeCommand::default().parse(stream, context),
-				_ => Err(CommandError::unknown_command(command).into())
+				_ => {
+					stream.take_while(|x| !x.is_linebreak()).count();
+					Err(CommandError::unknown_command(command).into())
+				}
 			}
 		}
 		else {
@@ -46,14 +49,15 @@ impl CommandError {
 }
 
 impl ParserError for CommandError {
-	fn diagnos(&self, file_id: FileId) -> Diagnostic<FileId> {
+	fn diagnos(&self, file_id: usize) -> Diagnostic<usize> {
 		match self {
 			CommandError::UnknownCommand { span, value } => {
-				let range = span;
+				let range = span + 1;
 				Diagnostic::error()
 					.with_message(format!("Unknown command: {}", value))
 					.with_labels(vec![
 						Label::primary(file_id, range)
+							.with_message("Does not recognize this command")
 					])
 			}
 		}
