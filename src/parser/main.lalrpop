@@ -1,0 +1,32 @@
+use std::str::FromStr;
+use crate::parser::ast::{Expression, Block, FunctionDeclare, Parameter};
+
+grammar;
+
+pub Term: Block<'input> = {
+    (<Expr>)* => Block::Expression(<>),
+    FuncDeclare => Block::FunctionDeclare(<>)
+};
+
+Expr: Expression<'input> = {
+    <Literal> ";" => Expression::Literal(<>),
+    <Number> ";" => Expression::Number(<>),
+    "{" <Term> "}" => Expression::Block(Box::new(<>))
+};
+
+FuncDeclare: FunctionDeclare<'input> = {
+    "fn" <a:Ident> "(" <b:Statement> ")" "{" <c:Term> "}" => FunctionDeclare::new(a, b, c)
+};
+
+Statement: Vec<Parameter<'input>> = {
+    Param => vec![<>],
+    (<Param> ",")* => <>,
+};
+
+Param: Parameter<'input> = {
+    <a:Ident> ":" <b:Ident> => Parameter::new(a, b)
+};
+
+Literal: &'input str = r#""(\\.|[^\\"])*""# => <>;
+Number: i32 = r"[0-9\-]+" => i32::from_str(<>).unwrap();
+Ident: &'input str = r"[a-zA-Z_]+";
