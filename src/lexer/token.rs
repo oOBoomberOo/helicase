@@ -1,35 +1,40 @@
 use super::Span;
 
+#[derive(Clone, Copy)]
 pub enum Token<'a> {
-	Identifier { value: &'a str, span: Span },
-	Whitespace { value: &'a str, span: Span },
-	Number { value: &'a str, span: Span },
-	String { value: &'a str, span: Span },
-	Symbol { value: &'a str, span: Span },
+	Identifier { value: &'a str, span: Span, slice: &'a str },
+	Whitespace { value: &'a str, span: Span, slice: &'a str },
+	Number { value: &'a str, span: Span, slice: &'a str },
+	String { value: &'a str, span: Span, slice: &'a str},
+	Symbol { value: &'a str, span: Span, slice: &'a str},
 }
 
 impl<'a> Token<'a> {
 	pub fn new(kind: TokenKind, value: &'a str, span: Span) -> Token<'a> {
+		let slice = &value[span.range()];
 		match kind {
-			TokenKind::Identifier => Token::Identifier { value, span },
-			TokenKind::Whitespace => Token::Whitespace { value, span },
-			TokenKind::Number => Token::Number { value, span },
-			TokenKind::String => Token::String { value, span },
-			TokenKind::Symbol => Token::Symbol { value, span },
+			TokenKind::Identifier => Token::Identifier { value, span, slice },
+			TokenKind::Whitespace => Token::Whitespace { value, span, slice },
+			TokenKind::Number => Token::Number { value, span, slice },
+			TokenKind::String => Token::String { value, span, slice },
+			TokenKind::Symbol => Token::Symbol { value, span, slice },
 		}
 	}
 
-	pub fn symbol(index: usize, content: &'a str) -> Token<'a> {
-		Token::Symbol { span: Span::from(index..index+1), value: &content[index..index+1] }
+	pub fn symbol(index: usize, value: &'a str) -> Token<'a> {
+		let span = Span::from(index..index+1);
+		let slice = &value[span.range()];
+		Token::Symbol { span, value, slice }
 	}
 
-	pub fn from_span(kind: TokenKind, content: &'a str, span: Span) -> Token<'a> {
+	pub fn from_span(kind: TokenKind, value: &'a str, span: Span) -> Token<'a> {
+		let slice = &value[span.range()];
 		match kind {
-			TokenKind::Identifier => Token::Identifier { value: &content[span.range()], span },
-			TokenKind::Whitespace => Token::Whitespace { value: &content[span.range()], span },
-			TokenKind::Number => Token::Number { value: &content[span.range()], span },
-			TokenKind::String => Token::String { value: &content[span.range()], span },
-			TokenKind::Symbol => Token::Symbol { value: &content[span.range()], span }
+			TokenKind::Identifier => Token::Identifier { value, span, slice},
+			TokenKind::Whitespace => Token::Whitespace { value, span, slice},
+			TokenKind::Number => Token::Number { value, span, slice},
+			TokenKind::String => Token::String { value, span, slice},
+			TokenKind::Symbol => Token::Symbol { value, span, slice}
 		}
 	}
 
@@ -40,6 +45,16 @@ impl<'a> Token<'a> {
 			| Token::Number { value, .. }
 			| Token::String { value, .. }
 			| Token::Symbol { value, .. } => value,
+		}
+	}
+
+	pub fn slice(&self) -> &'a str {
+		match self {
+			Token::Identifier { slice, ..}
+			| Token::Whitespace { slice, ..}
+			| Token::Number { slice, .. }
+			| Token::String { slice, .. }
+			| Token::Symbol { slice, .. } => slice,
 		}
 	}
 
@@ -64,7 +79,7 @@ impl<'a> Token<'a> {
 	}
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TokenKind {
 	Identifier,
 	Whitespace,
@@ -77,11 +92,11 @@ use std::fmt;
 impl fmt::Debug for Token<'_> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
-			Token::Identifier { span, value }
-			| Token::Whitespace { span, value }
-			| Token::Number { span, value }
-			| Token::String { span, value }
-			| Token::Symbol { span, value } => write!(f, "{} {:?} ({})", self.kind(), value, span),
+			Token::Identifier { span, .. }
+			| Token::Whitespace { span, .. }
+			| Token::Number { span, .. }
+			| Token::String { span, .. }
+			| Token::Symbol { span, .. } => write!(f, "{} {:?} ({})", self.kind(), self.slice(), span),
 		}
 	}
 }

@@ -1,6 +1,7 @@
+#[derive(Clone, Copy)]
 pub struct Span {
-	start: usize,
-	end: usize
+	pub start: usize,
+	pub end: usize
 }
 
 use std::fmt;
@@ -34,8 +35,16 @@ impl From<Range<usize>> for Span {
 	}
 }
 
+use std::cmp::{min, max};
 impl Span {
 	pub fn range(&self) -> Range<usize> {
 		self.start..self.end
+	}
+
+	pub fn join(&self, other: &Span) -> Span {
+		Span {
+			start: min(self.start, other.start),
+			end: max(self.end, other.end)
+		}
 	}
 }

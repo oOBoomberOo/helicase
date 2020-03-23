@@ -7,7 +7,7 @@ mod number;
 mod string;
 
 use identifier::IdentLexer;
-use whitespace::WhitespaceLexer;
+// use whitespace::WhitespaceLexer;
 use number::NumberLexer;
 use string::StringLexer;
 
@@ -38,7 +38,8 @@ impl Lexer {
 				result.push(NumberLexer::lex(stream, content));
 			}
 			else if token.is_whitespace() {
-				result.push(WhitespaceLexer::lex(stream, content));
+				// result.push(WhitespaceLexer::lex(stream, content));
+				stream.next();
 			}
 			else if token == '"' {
 				result.push(StringLexer::lex(stream, content));
@@ -76,6 +77,5 @@ pub mod prelude {
 	use std::iter::Peekable;
 	use std::str::CharIndices;
 	pub type TokenStream<'a> = Peekable<CharIndices<'a>>;
-	#[macro_use]
 	pub use crate::get_pos;
 }

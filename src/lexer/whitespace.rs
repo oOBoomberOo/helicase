@@ -14,7 +14,7 @@ impl<'a> Lex<'a> for WhitespaceLexer {
 				break;
 			}
 
-			end = index + 1;
+			end = index;
 			stream.next();
 		}
 

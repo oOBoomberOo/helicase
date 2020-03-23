@@ -14,6 +14,7 @@ impl<'a> Lex<'a> for StringLexer {
 				if let Some(item) = stream.next() {
 					let (index, _) = item;
 					end = index + 1;
+					continue;
 				}
 			}
 			else if start != end && token == '"' {
