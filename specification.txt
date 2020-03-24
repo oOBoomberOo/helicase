@@ -102,14 +102,3 @@ give @s diamond{custom_model_id: ${boomber:stringly_type_model_id}}
 ```
 tellraw @s "Datapack Version: ${version}"
 ```
-
-6) terminal
-- identifier:
-    Non-whitespace characters grouped into one
-- expression:
-    syntax that can compose of:
-      - scope character '{...}'
-	  - identifier
-	  - literal
-- literal:
-    number or string

@@ -12,17 +12,37 @@ pub statement: Statement = {
 	<atr:attribute> <stm:statement> => Statement::Attribute(atr, Box::from(stm)),
 	function_declaration => Statement::FunctionDeclaration(<>),
 	trait_declaration => Statement::TraitDeclaration(<>),
-	"var" <ident> "=" <expression> ";" => Statement::Declare(<>),
+	enum_declaration => Statement::EnumDeclaration(<>),
+	function_call => Statement::FunctionCall(<>),
 	<expression> ";" => Statement::Expression(<>),
+	<ident> "=" <expression> ";" => Statement::Assign(<>),
+	"let" <ident> "=" <expression> ";" => Statement::Declare(<>),
+	"use" <literal> ";" => Statement::Import(<>),
 	";" => Statement::None
+};
+
+operation: Operation = {
+	"%" => Operation::Mod,
+	"/" => Operation::Div,
+	"*" => Operation::Mul,
+	"-" => Operation::Sub,
+	"+" => Operation::Add,
 };
 
 expression: Expression = {
 	number => Expression::Number(<>),
 	literal => Expression::Literal(<>),
 	ident => Expression::Ident(<>),
+	<a:expression> <b:operation> <c:term> => Expression::Operation(Box::from(a), b, Box::from(c)),
 	"(" <expression> ")" => Expression::Expression(Box::new(<>))
 };
+
+term: Expression = {
+	"(" <expression> ")",
+	number => Expression::Number(<>),
+	literal => Expression::Literal(<>),
+	ident => Expression::Ident(<>),
+}
 
 float: f32 = r"[0-9\-.]+f" => f32::from_str(pop_string(<>)).unwrap();
 double: f64 = r"[0-9\-.]+d" => f64::from_str(pop_string(<>)).unwrap();
@@ -32,7 +52,7 @@ long: i64 = r"[0-9\-]+L" => i64::from_str(pop_string(<>)).unwrap();
 number: i32 = r"[0-9\-]+" => i32::from_str(<>).unwrap();
 boolean: bool = { "true" => true, "false" => false }
 
-ident: Identifier = r"[a-zA-Z_]+" => <>.to_string();
+ident: Identifier = r"([a-zA-Z_]|::)+" => <>.to_string();
 literal: String = r#""(\\.|[^\\"])*""# => <>.to_string();
 
 trait_declaration: TraitDeclaration = {
@@ -46,22 +66,34 @@ trait_inner: TraitInner = {
 };
 
 function_declaration: FunctionDeclaration = {
-	"fn" <name:ident> "(" <parameters:(<parameter> ",")*> <extra:parameter?> ")" "{" <content:statements> "}" => {
+	"fn" <name:ident> "(" <parameters:(<parameter_declration> ",")*> <extra:parameter_declration?> ")" "->" <return_type:ident> "{" <content:statements> "}" => {
 		let mut parameters = parameters;
 		if let Some(extra) = extra {
 			parameters.push(extra);
 		}
 
-		FunctionDeclaration::new(name, parameters, content)
+		FunctionDeclaration::new(name, parameters, content, None)
+	},
+	"fn" <name:ident> "(" <parameters:(<parameter_declration> ",")*> <extra:parameter_declration?> ")" "{" <content:statements> "}" => {
+		let mut parameters = parameters;
+		if let Some(extra) = extra {
+			parameters.push(extra);
+		}
+
+		FunctionDeclaration::new(name, parameters, content, None)
 	}
 };
 
-parameter: Parameter = {
-	<name:ident> ":" <kind:ident> => Parameter::new(name, kind)
-}
+parameter_declration: ParameterDeclaration = <name:ident> ":" <kind:ident> => ParameterDeclaration::new(name, kind);
 
 nbt: Nbt = {
-	"{" <v:(<ident> ":" <nbt>)*> "}" => Nbt::new_compound(v),
+	"{" <v:(<ident> ":" <nbt> ",")*> <extra:(<ident> ":" <nbt>)?> "}" => {
+		let mut list = v;
+		if let Some(extra) = extra {
+			list.push(extra);
+		}
+		Nbt::new_compound(list)
+	},
 	"[" <v:(<nbt> ",")*> <extra:nbt?> "]" => {
 		let mut list = v;
 		if let Some(extra) = extra {
@@ -88,3 +120,20 @@ attribute: Attribute = {
 		Attribute::new(values)
 	}
 }
+
+enum_declaration: EnumDeclaration = "enum" <name:ident> "{" <v:(<ident> ",")*> <extra:ident?> "}" => {
+	let mut list = v;
+	if let Some(extra) = extra {
+		list.push(extra);
+	}
+	EnumDeclaration::new(name, list)
+};
+
+function_call: FunctionCall = <name:ident> "(" <v:(<expression> ",")*> <extra:expression?> ")" => {
+	let mut list = v;
+	if let Some(extra) = extra {
+		list.push(extra);
+	}
+
+	FunctionCall::new(name, list)
+};

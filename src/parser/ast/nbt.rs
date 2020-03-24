@@ -72,7 +72,7 @@ impl fmt::Debug for Nbt {
 			Nbt::Byte(value) => write!(f, "{}b", value),
 			Nbt::Double(value) => write!(f, "{}d", value),
 			Nbt::Float(value) => write!(f, "{}f", value),
-			Nbt::Literal(value) => write!(f, "\"{}\"", value),
+			Nbt::Literal(value) => write!(f, "{}", value),
 			Nbt::List(items) => write!(f, "{:#?}", items),
 			Nbt::Compound(items) => write!(f, "{:#?}", items),
 		}

@@ -3,24 +3,37 @@ use super::*;
 #[derive(Debug)]
 pub struct FunctionDeclaration {
 	name: Identifier,
-	parameters: Vec<Parameter>,
+	parameters: Vec<ParameterDeclaration>,
+	return_type: Option<Identifier>,
 	content: Vec<Statement>
 }
 
 impl FunctionDeclaration {
-	pub fn new(name: Identifier, parameters: Vec<Parameter>, content: Vec<Statement>) -> Self {
-		FunctionDeclaration { name, parameters, content }
+	pub fn new(name: Identifier, parameters: Vec<ParameterDeclaration>, content: Vec<Statement>, return_type: Option<Identifier>) -> FunctionDeclaration {
+		FunctionDeclaration { name, parameters, content, return_type }
 	}
 }
 
 #[derive(Debug)]
-pub struct Parameter {
+pub struct ParameterDeclaration {
 	name: Identifier,
 	kind: String
 }
 
-impl Parameter {
-	pub fn new(name: Identifier, kind: String) -> Parameter {
-		Parameter { name, kind }
+impl ParameterDeclaration {
+	pub fn new(name: Identifier, kind: String) -> ParameterDeclaration {
+		ParameterDeclaration { name, kind }
+	}
+}
+
+#[derive(Debug)]
+pub struct FunctionCall {
+	name: Identifier,
+	parameters: Vec<Expression>
+}
+
+impl FunctionCall {
+	pub fn new(name: Identifier, parameters: Vec<Expression>) -> FunctionCall {
+		FunctionCall { name, parameters }
 	}
 }
