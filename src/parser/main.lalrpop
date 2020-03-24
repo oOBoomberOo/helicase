@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::parser::ast::{*};
+use crate::parser::ast::*;
 
 grammar;
 
@@ -13,10 +13,12 @@ pub statement: Statement = {
 	function_declaration => Statement::FunctionDeclaration(<>),
 	trait_declaration => Statement::TraitDeclaration(<>),
 	enum_declaration => Statement::EnumDeclaration(<>),
+	scoreboard_declaration => Statement::ScoreboardDeclaration(<>),
 	function_call => Statement::FunctionCall(<>),
 	<expression> ";" => Statement::Expression(<>),
 	<ident> "=" <expression> ";" => Statement::Assign(<>),
-	"let" <ident> "=" <expression> ";" => Statement::Declare(<>),
+	"let" <name:ident> "=" <value:expression> ";" => Statement::Declare(name, None, value),
+	"let" <name:ident> ":" <kind:ident> "=" <value:expression> ";" => Statement::Declare(name, Some(kind), value),
 	"use" <literal> ";" => Statement::Import(<>),
 	";" => Statement::None
 };
@@ -33,8 +35,9 @@ expression: Expression = {
 	number => Expression::Number(<>),
 	literal => Expression::Literal(<>),
 	ident => Expression::Ident(<>),
+	<a:expression> "." <b:ident> => Expression::Access(Box::from(a), Box::from(b)),
 	<a:expression> <b:operation> <c:term> => Expression::Operation(Box::from(a), b, Box::from(c)),
-	"(" <expression> ")" => Expression::Expression(Box::new(<>))
+	"(" <expression> ")" => <>
 };
 
 term: Expression = {
@@ -136,4 +139,15 @@ function_call: FunctionCall = <name:ident> "(" <v:(<expression> ",")*> <extra:ex
 	}
 
 	FunctionCall::new(name, list)
+};
+
+scoreboard_name: String = {
+	ident,
+	<a:ident> "." <b:scoreboard_name> => format!("{}.{}", a, b),
+	<a:ident> ":" <b:scoreboard_name> => format!("{}:{}", a, b),
+};
+
+scoreboard_declaration: ScoreboardDeclaration = {
+	"declare" <name:scoreboard_name> <objective:scoreboard_name> ";" => ScoreboardDeclaration::new(name, objective, None),
+	"declare" <name:scoreboard_name> <objective:scoreboard_name> <display_name:nbt> ";" => ScoreboardDeclaration::new(name, objective, Some(display_name)),
 };

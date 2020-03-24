@@ -6,8 +6,10 @@ pub enum Statement {
 	FunctionDeclaration(FunctionDeclaration),
 	TraitDeclaration(TraitDeclaration),
 	EnumDeclaration(EnumDeclaration),
+	ScoreboardDeclaration(ScoreboardDeclaration),
+	
 	FunctionCall(FunctionCall),
-	Declare(Identifier, Expression),
+	Declare(Identifier, Option<Identifier>, Expression),
 	Assign(Identifier, Expression),
 	Expression(Expression),
 	Import(String),

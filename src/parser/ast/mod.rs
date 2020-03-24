@@ -6,6 +6,7 @@ mod traits;
 mod enums;
 mod attribute;
 mod operation;
+mod scoreboard;
 
 pub type Identifier = String;
 
@@ -17,6 +18,7 @@ pub use enums::*;
 pub use nbt::*;
 pub use attribute::*;
 pub use operation::*;
+pub use scoreboard::*;
 
 pub fn pop_string(input: &str) -> &str {
 	&input[..input.len() - 1]
