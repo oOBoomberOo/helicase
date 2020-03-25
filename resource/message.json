@@ -1,0 +1,23 @@
+{
+	"advancement": {
+		"invalid-parent": {
+			"labels": [
+				{"position": 0, "primary": true}
+			],
+			"message": "Invalid parent: '${namespace}'",
+			"notes": [
+				"'${path}' doesn't exist"
+			]
+		},
+		"circular-reference": {
+			"labels": [
+				{"position": 0, "primary": true, "message": "Reference '${other_namespace}'"},
+				{"position": 1, "message": "But '${other_namespace}' also refers to '${self_namespace}'"}
+			],
+			"message": "Found circular parent reference",
+			"notes": [
+				"Hint: Change 'parent' field"
+			]
+		}
+	}
+}
