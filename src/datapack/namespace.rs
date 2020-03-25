@@ -6,7 +6,9 @@ pub struct Namespace {
 
 use std::path::{Path, PathBuf};
 impl Namespace {
-	pub fn new(value: String, kind: String) -> Namespace {
+	pub fn new(value: impl Into<String>, kind: impl Into<String>) -> Namespace {
+		let value = value.into();
+		let kind = kind.into();
 		Namespace { value, kind }
 	}
 
