@@ -10,48 +10,38 @@ pub struct AdvancementProcessor {
 	parent: Option<String>,
 }
 
+impl AdvancementProcessor {
+	fn get_field(&self, content: &str, value: &str) -> Range<usize> {
+		let pattern = format!(r#""{}""#, value);
+		let start = content.find(&pattern).unwrap_or(0);
+		let end = start + pattern.len();
+		start..end
+	}
+
+	fn process_with_parent(&self, resource: &Resource, parent: &Namespace, content: &str, context: &mut Context) -> Result<(), Error> {
+		if !parent.exist(context) {
+			let range = self.get_field(content, &parent.value);
+			let span = Span::new(resource.id, parent.clone(), range);
+			return Err(AdvancementError::ParentNotFound(span).into());
+		}
+		Ok(())
+	}
+
+	fn process_without_parent(&self, _resource: &Resource, _context: &mut Context) -> Result<(), Error> {
+		Ok(())
+	}
+}
+
 impl Processor for AdvancementProcessor {
 	fn process(resource: &Resource, context: &mut Context) -> Result<(), Error> {
 		let content = fs::read_to_string(&resource.physical)?;
-		let data: AdvancementProcessor = serde_json::from_reader(resource.read()?)?;
+		let advancement: AdvancementProcessor = serde_json::from_str(&content)?;
 
-		if let Some(parent) = data.parent {
-			let namespace = Namespace::new(parent.to_owned(), "advancements".to_owned());
-			if let Some(other) = context.advancement_list.get(&namespace) {
-				let other_content = fs::read_to_string(&other.physical)?;
-				let other_advancement: AdvancementProcessor =
-					serde_json::from_reader(other.read()?)?;
-
-				if let Some(other_parent) = other_advancement.parent {
-					let this_path = resource.namespace();
-					let other_path =
-						Namespace::new(other_parent.to_owned(), "advancements".to_owned());
-
-					if this_path == other_path {
-						let first = {
-							let start = content.find(&parent).unwrap();
-							let end = start + parent.len();
-							Span::new(resource.id, parent, start..end)
-						};
-						let second = {
-							let start = other_content.find(&other_parent).unwrap();
-							let end = start + other_parent.len();
-							Span::new(other.id, other_parent, start..end)
-						};
-
-						return Err(AdvancementError::CircularReference(first, second).into());
-					}
-				}
-			} else {
-				let id = resource.id;
-				let start = content.find(&parent).unwrap();
-				let end = start + parent.len();
-				let span = Span::new(id, namespace, start..end);
-				return Err(AdvancementError::ParentNotFound(span).into());
-			}
+		if let Some(parent) = &advancement.parent.clone().map(|value| Namespace::new(&value, "advancements")) {
+			advancement.process_with_parent(resource, parent, &content, context)
+		} else {
+			advancement.process_without_parent(resource, context)
 		}
-
-		Ok(())
 	}
 }
 
@@ -60,7 +50,6 @@ struct Criteria {
 	trigger: String,
 	conditions: Option<Value>,
 }
-
 
 use thiserror::Error;
 #[derive(Debug, Error)]
@@ -84,8 +73,7 @@ impl ProcessorError for AdvancementError {
 				message.insert("${path}", &path);
 
 				error.report(&[span], &message)
-
-			},
+			}
 			AdvancementError::CircularReference(first, second) => {
 				let error = message.advancement.get(&self.error_id()).unwrap();
 				let mut message: HashMap<&str, &str> = HashMap::default();

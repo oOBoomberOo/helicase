@@ -1,3 +1,5 @@
+use super::prelude::*;
+
 #[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub struct Namespace {
 	pub value: String,
@@ -34,13 +36,10 @@ impl Namespace {
 		let kind = &self.kind;
 		let rest = {
 			let rest = components.next().unwrap_or_default().to_owned();
-			match kind.as_ref() {
-				"advancements" => format!("{}.json", rest),
-				"functions" => format!("{}.mcfunction", rest),
-				"loot_tables" => format!("{}.json", rest),
-				"tags" => format!("{}.json", rest),
-				"structures" => format!("{}.nbt", rest),
-				_ => rest
+			let extension = Namespace::extension_from_kind(kind);
+			match extension {
+				Some(extension) => format!("{}.{}", rest, extension),
+				None => rest
 			}
 		};
 		
@@ -48,6 +47,31 @@ impl Namespace {
 			.join(namespace)
 			.join(kind)
 			.join(rest)
+	}
+
+	pub fn extension_from_kind(kind: &str) -> Option<&str> {
+		match kind {
+			"advancements" => Some("json"),
+			"functions" => Some("mcfunction"),
+			"loot_tables" => Some("json"),
+			"tags" => Some("json"),
+			"structures" => Some("nbt"),
+			_ => None
+		}
+	}
+
+	pub fn get_resource<'a>(&'a self, context: &'a Context) -> Option<&'a &Resource> {
+		match self.kind.as_ref() {
+			"advancements" => context.advancement_list.get(&self),
+			"functions" => context.function_list.get(&self),
+			"loot_tables" => context.loot_table_list.get(&self),
+			"tags" => context.tags_list.get(&self),
+			_ => None
+		}
+	}
+
+	pub fn exist(&self, context: &Context) -> bool {
+		self.get_resource(context).is_some()
 	}
 }
 

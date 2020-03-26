@@ -7,7 +7,8 @@ pub struct Context<'a> {
 	pub advancement_list: HashMap<Namespace, &'a Resource>,
 	pub loot_table_list: HashMap<Namespace, &'a Resource>,
 	pub tags_list: HashMap<Namespace, &'a Resource>,
-	pub meta: Option<&'a Resource>
+	pub meta: Option<&'a Resource>,
+	pub content: Option<&'a str>
 }
 
 impl<'a> Context<'a> {
