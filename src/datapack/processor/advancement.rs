@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::fs;
+use crate::utils::get_json_field;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AdvancementProcessor {
@@ -11,29 +12,22 @@ pub struct AdvancementProcessor {
 }
 
 impl AdvancementProcessor {
-	fn get_field(&self, content: &str, value: &str) -> Range<usize> {
-		let pattern = format!(r#""{}""#, value);
-		let start = content.find(&pattern).unwrap_or(0);
-		let end = start + pattern.len();
-		start..end
-	}
-
-	fn process_with_parent(&self, resource: &Resource, parent: &Namespace, content: &str, context: &mut Context) -> Result<(), Error> {
+	fn process_with_parent(&self, resource: &Resource, parent: &Namespace, content: &str, context: &mut Context) -> PResult<()> {
 		if !parent.exist(context) {
-			let range = self.get_field(content, &parent.value);
+			let range = get_json_field(content, &parent.value);
 			let span = Span::new(resource.id, parent.clone(), range);
 			return Err(AdvancementError::ParentNotFound(span).into());
 		}
 		Ok(())
 	}
 
-	fn process_without_parent(&self, _resource: &Resource, _context: &mut Context) -> Result<(), Error> {
+	fn process_without_parent(&self, _resource: &Resource, _context: &mut Context) -> PResult<()> {
 		Ok(())
 	}
 }
 
 impl Processor for AdvancementProcessor {
-	fn process(resource: &Resource, context: &mut Context) -> Result<(), Error> {
+	fn process(resource: &Resource, context: &mut Context) -> PResult<()> {
 		let content = fs::read_to_string(&resource.physical)?;
 		let advancement: AdvancementProcessor = serde_json::from_str(&content)?;
 
@@ -51,7 +45,6 @@ struct Criteria {
 	conditions: Option<Value>,
 }
 
-use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum AdvancementError {
 	#[error("invalid-parent")]

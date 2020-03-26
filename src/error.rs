@@ -5,13 +5,16 @@ use serde_json as js;
 use crate::datapack::prelude::{Diagnostic};
 use crate::datapack::processor::prelude::*;
 
+pub type PResult<T> = Result<T, Error>;
+
 #[derive(Debug)]
 pub enum Error {
 	NotExist(PathBuf),
 	Io(io::Error),
 	StripPrefix(StripPrefixError),
 	Serde(js::Error),
-	Advancement(AdvancementError)
+	Advancement(AdvancementError),
+	Tags(TagsError),
 }
 
 use std::fmt;
@@ -23,6 +26,7 @@ impl fmt::Display for Error {
 			Error::StripPrefix(error) => write!(f, "{}", error),
 			Error::Serde(error) => write!(f, "{}", error),
 			Error::Advancement(error) => write!(f, "{}", error),
+			Error::Tags(error) => write!(f, "{}", error),
 		}
 	}
 }
@@ -50,9 +54,8 @@ impl ProcessorError for Error {
 				Diagnostic::error()
 					.with_message(message)
 			},
-			Error::Advancement(error) => {
-				error.report(message)
-			}
+			Error::Advancement(error) => error.report(message),
+			Error::Tags(error) => error.report(message)
 		}
 	}
 }
@@ -74,5 +77,6 @@ quick_from!{
 	io::Error => Io,
 	StripPrefixError => StripPrefix,
 	js::Error => Serde,
-	AdvancementError => Advancement
+	AdvancementError => Advancement,
+	TagsError => Tags
 }

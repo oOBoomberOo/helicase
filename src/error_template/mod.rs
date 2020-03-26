@@ -5,6 +5,7 @@ use codespan_reporting::diagnostic::Diagnostic;
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ErrorTemplates {
 	pub advancement: ErrorGroup,
+	pub tag: ErrorGroup
 }
 
 pub type ErrorGroup = HashMap<String, ErrorTemplate>;

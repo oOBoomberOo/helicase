@@ -25,21 +25,22 @@ impl Resource {
 			Extension::Advancement => context.add_advancement(&self),
 			Extension::Function => context.add_function(&self),
 			Extension::LootTable => context.add_loot_table(&self),
-			Extension::Tags => context.add_tags(&self),
+			Extension::Tags(_) => context.add_tags(&self),
 			Extension::PackMeta => context.set_meta(&self),
 			_ => ()
 		}
 	}
 
-	pub fn process(&self, context: &mut Context) -> Result<(), Error> {
+	pub fn process(&self, context: &mut Context) -> PResult<()> {
 		match self.get_extension() {
 			Extension::Function => FunctionProcessor::process(&self, context),
 			Extension::Advancement => AdvancementProcessor::process(&self, context),
+			Extension::Tags(_) => TagsProcessor::process(&self, context),
 			_ => Ok(())
 		}
 	}
 
-	pub fn from_entry(entry: DirEntry, parent: &Path, files: &mut Files) -> Result<Vec<Resource>, Error> {
+	pub fn from_entry(entry: DirEntry, parent: &Path, files: &mut Files) -> PResult<Vec<Resource>> {
 		let metadata = entry.metadata()?;
 
 		if metadata.is_dir() {
@@ -69,7 +70,13 @@ impl Resource {
 			[_, _, kind, .., last] if *kind == "advancements" && last.to_string_lossy().ends_with(".json") => Extension::Advancement,
 			[_, _, kind, .., last] if *kind == "loot_tables" && last.to_string_lossy().ends_with(".json") => Extension::LootTable,
 			[_, _, kind, .., last] if *kind == "loot_tables" && last.to_string_lossy().ends_with(".ult") => Extension::UnifiedLootTable,
-			[_, _, kind, .., last] if *kind == "tags" && last.to_string_lossy().ends_with(".json") => Extension::Tags,
+			[_, _, kind, tag_kind, .., last] if *kind == "tags" && last.to_string_lossy().ends_with(".json") => match tag_kind.to_str() {
+				Some("functions") => Extension::Tags(TagKind::Function),
+				Some("blocks") => Extension::Tags(TagKind::Block),
+				Some("items") => Extension::Tags(TagKind::Item),
+				Some("entities_type") => Extension::Tags(TagKind::Entity),
+				_ => Extension::Tags(TagKind::Other)
+			},
 			[item] if *item == "pack.mcmeta" => Extension::PackMeta,
 			_ => Extension::Other
 		}
@@ -115,7 +122,7 @@ mod tests {
 	#[test]
 	fn get_tags_extension() {
 		let resource = Resource::new("data/boomber/tags/functions/loop.json", "", 0);
-		assert_eq!(resource.get_extension(), Extension::Tags);
+		assert_eq!(resource.get_extension(), Extension::Tags(TagKind::Function));
 	}
 
 	#[test]

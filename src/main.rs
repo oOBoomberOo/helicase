@@ -11,6 +11,7 @@ struct Opt {
 mod datapack;
 mod error;
 mod error_template;
+mod utils;
 
 fn main() {
 	if let Err(e) = run() {

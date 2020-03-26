@@ -19,5 +19,16 @@
 				"Hint: Change 'parent' field"
 			]
 		}
+	},
+	"tag": {
+		"function-not-found": {
+			"labels": [
+				{"position": 0, "primary": true, "message": "Unknown function"}
+			],
+			"message": "Unknown function",
+			"notes": [
+				"'${path}' doesn't exists"
+			]
+		}
 	}
 }

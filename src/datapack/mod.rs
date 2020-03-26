@@ -1,5 +1,4 @@
 use std::path::PathBuf;
-use super::Error;
 
 pub mod processor;
 mod resource;
@@ -20,7 +19,7 @@ impl Datapack {
 		Datapack { path }
 	}
 
-	pub fn run(&self, files: &mut Files) -> Result<Vec<Diagnostic<usize>>, Error> {
+	pub fn run(&self, files: &mut Files) -> PResult<Vec<Diagnostic<usize>>> {
 		let parent = &self.path;
 		let resources: Vec<Resource> = fs::read_dir(&self.path)?
 			.filter_map(|entry| entry.ok())
@@ -47,10 +46,10 @@ impl Datapack {
 
 
 pub mod prelude {
-	pub use crate::error::Error;
+	pub use crate::error::PResult;
 	pub use super::resource::Resource;
-	pub use super::extension::Extension;
-	pub use super::namespace::Namespace;
+	pub use super::extension::{Extension, TagKind};
+	pub use super::namespace::{Namespace, NamespaceKind};
 	pub use super::context::Context;
 	pub use super::processor::prelude::*;
 	
