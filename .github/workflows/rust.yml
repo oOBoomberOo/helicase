@@ -8,7 +8,7 @@ on:
 
 jobs:
   check:
-    runs-on: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         rust: ["stable", "beta", "nightly"]
@@ -24,7 +24,7 @@ jobs:
         with:
           command: check
   test:
-     runs-on: [ubuntu-latest, windows-latest, macos-latest]
+     runs-on: ubuntu-latest
      strategy:
        matrix:
          rust: ["stable", "beta", "nightly"]
@@ -40,7 +40,7 @@ jobs:
          with:
            command: test
   build:
-    runs-on: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         rust: ["stable", "beta", "nightly"]
