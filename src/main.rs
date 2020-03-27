@@ -25,15 +25,15 @@ use codespan_reporting::term::termcolor::StandardStream;
 use codespan_reporting::term::{ColorArg, Config};
 use datapack::prelude::Files;
 use datapack::Datapack;
-use error::Error;
+use error::PError;
 use std::str::FromStr;
 
-fn run() -> Result<(), Error> {
+fn run() -> Result<(), PError> {
 	let opt = Opt::from_args();
 	let datapack_dir = opt.path;
 
 	if !datapack_dir.exists() {
-		return Err(Error::NotExist(datapack_dir));
+		return Err(PError::NotExist(datapack_dir));
 	}
 
 	let mut files: Files = SimpleFiles::new();

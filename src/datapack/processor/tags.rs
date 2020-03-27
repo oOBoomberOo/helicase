@@ -11,39 +11,46 @@ pub struct TagsProcessor {
 }
 
 impl TagsProcessor {
-	fn process_each_value(&self, content: &str, path: &str, resource: &Resource, context: &mut Context) -> PResult<()> {
+	fn process_each_value(&self, content: &str, path: &str, resource: &Resource, context: &mut Context) -> impl Iterator<Item = TagsError> {
 		let kind = match resource.get_extension() {
 			Extension::Tags(v) => v,
 			_ => TagKind::Other,
 		};
 
+		let mut result = Vec::new();
+
 		match kind {
-			TagKind::Function => self.with_function_tags(content, path, resource, context),
-			_ => Ok(())
-		}
+			TagKind::Function => result.push(self.with_function_tags(content, path, resource, context)),
+			_ => ()
+		};
+
+		result.into_iter().flatten()
 	}
 	
-	fn with_function_tags(&self, content: &str, path: &str, resource: &Resource, context: &mut Context) -> PResult<()> {
+	fn with_function_tags(&self, content: &str, path: &str, resource: &Resource, context: &mut Context) -> Vec<TagsError> {
+		let mut errors = Vec::new();
 		let namespace = Namespace::new(path, NamespaceKind::Function);
 		if !namespace.exist(context) {
 			let range = get_json_field(content, path);
 			let content = namespace;
 			let span = Span::new(resource.id, content, range);
-			return Err(TagsError::FunctionNotFound(span).into());
+			errors.push(TagsError::FunctionNotFound(span));
 		}
-		Ok(())
+		
+		errors
 	}
 }
 
 impl Processor for TagsProcessor {
-	fn process(resource: &Resource, context: &mut Context) -> PResult<()> {
+	fn process(resource: &Resource, context: &mut Context) -> PResult<Vec<PError>> {
 		let content = fs::read_to_string(&resource.physical)?;
 		let tags: TagsProcessor = serde_json::from_str(&content)?;
-
-		tags.values
+		let result = tags.values
 			.iter()
-			.try_for_each(|path| tags.process_each_value(&content, path, resource, context))?;
-		Ok(())
+			.flat_map(|path| tags.process_each_value(&content, path, resource, context))
+			.map(PError::from)
+			.collect();
+		Ok(result)
 	}
 }
 

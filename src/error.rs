@@ -5,10 +5,10 @@ use serde_json as js;
 use crate::datapack::prelude::{Diagnostic};
 use crate::datapack::processor::prelude::*;
 
-pub type PResult<T> = Result<T, Error>;
+pub type PResult<T> = Result<T, PError>;
 
 #[derive(Debug)]
-pub enum Error {
+pub enum PError {
 	NotExist(PathBuf),
 	Io(io::Error),
 	StripPrefix(StripPrefixError),
@@ -18,44 +18,44 @@ pub enum Error {
 }
 
 use std::fmt;
-impl fmt::Display for Error {
+impl fmt::Display for PError {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
-			Error::NotExist(path) => write!(f, "'{}' does not exists", path.display()),
-			Error::Io(error) => write!(f, "{}", error),
-			Error::StripPrefix(error) => write!(f, "{}", error),
-			Error::Serde(error) => write!(f, "{}", error),
-			Error::Advancement(error) => write!(f, "{}", error),
-			Error::Tags(error) => write!(f, "{}", error),
+			PError::NotExist(path) => write!(f, "'{}' does not exists", path.display()),
+			PError::Io(error) => write!(f, "{}", error),
+			PError::StripPrefix(error) => write!(f, "{}", error),
+			PError::Serde(error) => write!(f, "{}", error),
+			PError::Advancement(error) => write!(f, "{}", error),
+			PError::Tags(error) => write!(f, "{}", error),
 		}
 	}
 }
 
-impl ProcessorError for Error {
+impl ProcessorError for PError {
 	fn report(&self, message: &ErrorTemplates) -> Diagnostic<usize> {
 		match self {
-			Error::NotExist(path) => {
+			PError::NotExist(path) => {
 				let message = format!("'{}' does not exist", path.display());
 				Diagnostic::error()
 					.with_message(message)
 			},
-			Error::Io(error) => {
+			PError::Io(error) => {
 				let message = format!("{}", error);
 				Diagnostic::error()
 					.with_message(message)
 			},
-			Error::StripPrefix(error) => {
+			PError::StripPrefix(error) => {
 				let message = format!("{}", error);
 				Diagnostic::error()
 					.with_message(message)
 			},
-			Error::Serde(error) => {
+			PError::Serde(error) => {
 				let message = format!("{}", error);
 				Diagnostic::error()
 					.with_message(message)
 			},
-			Error::Advancement(error) => error.report(message),
-			Error::Tags(error) => error.report(message)
+			PError::Advancement(error) => error.report(message),
+			PError::Tags(error) => error.report(message)
 		}
 	}
 }
@@ -73,7 +73,7 @@ macro_rules! quick_from {
 }
 
 quick_from!{
-	Error,
+	PError,
 	io::Error => Io,
 	StripPrefixError => StripPrefix,
 	js::Error => Serde,

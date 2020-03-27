@@ -36,7 +36,8 @@ impl Datapack {
 		let result: Vec<Diagnostic<usize>> = resources
 			.iter()
 			.map(|x| x.process(context))
-			.filter_map(|x| x.err())
+			.filter_map(|x| x.ok())
+			.flatten()
 			.map(|x| x.report(&error_messages))
 			.collect();
 
@@ -46,7 +47,7 @@ impl Datapack {
 
 
 pub mod prelude {
-	pub use crate::error::PResult;
+	pub use crate::error::*;
 	pub use super::resource::Resource;
 	pub use super::extension::{Extension, TagKind};
 	pub use super::namespace::{Namespace, NamespaceKind};

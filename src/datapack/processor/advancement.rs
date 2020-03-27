@@ -12,30 +12,38 @@ pub struct AdvancementProcessor {
 }
 
 impl AdvancementProcessor {
-	fn process_with_parent(&self, resource: &Resource, parent: &Namespace, content: &str, context: &mut Context) -> PResult<()> {
+	fn process_with_parent(&self, resource: &Resource, parent: &Namespace, content: &str, context: &mut Context) -> Vec<AdvancementError> {
+		let mut result = Vec::new();
+
 		if !parent.exist(context) {
 			let range = get_json_field(content, &parent.value);
 			let span = Span::new(resource.id, parent.clone(), range);
-			return Err(AdvancementError::ParentNotFound(span).into());
+			result.push(AdvancementError::ParentNotFound(span));
 		}
-		Ok(())
+		
+		result
 	}
 
-	fn process_without_parent(&self, _resource: &Resource, _context: &mut Context) -> PResult<()> {
-		Ok(())
+	fn process_without_parent(&self, _resource: &Resource, _context: &mut Context) -> Vec<AdvancementError> {
+		Vec::default()
 	}
 }
 
 impl Processor for AdvancementProcessor {
-	fn process(resource: &Resource, context: &mut Context) -> PResult<()> {
+	fn process(resource: &Resource, context: &mut Context) -> PResult<Vec<PError>> {
 		let content = fs::read_to_string(&resource.physical)?;
 		let advancement: AdvancementProcessor = serde_json::from_str(&content)?;
 
+		let mut result = Vec::new();
+
 		if let Some(parent) = &advancement.parent.clone().map(|value| Namespace::new(&value, "advancements")) {
-			advancement.process_with_parent(resource, parent, &content, context)
+			result.append(&mut advancement.process_with_parent(resource, parent, &content, context));
 		} else {
-			advancement.process_without_parent(resource, context)
+			result.append(&mut advancement.process_without_parent(resource, context));
 		}
+
+		let result = result.into_iter().map(PError::from).collect();
+		Ok(result)
 	}
 }
 

@@ -31,12 +31,12 @@ impl Resource {
 		}
 	}
 
-	pub fn process(&self, context: &mut Context) -> PResult<()> {
+	pub fn process(&self, context: &mut Context) -> PResult<Vec<crate::error::PError>> {
 		match self.get_extension() {
 			Extension::Function => FunctionProcessor::process(&self, context),
 			Extension::Advancement => AdvancementProcessor::process(&self, context),
 			Extension::Tags(_) => TagsProcessor::process(&self, context),
-			_ => Ok(())
+			_ => Ok(Vec::default())
 		}
 	}
 
