@@ -66,18 +66,9 @@ impl Resource {
 		let path: Vec<&OsStr> = self.relative.components().map(|x| x.as_os_str()).collect();
 
 		match path.as_slice() {
-			[_, _, kind, .., last] if *kind == "functions" && last.to_string_lossy().ends_with(".mcfunction") => Extension::Function,
-			[_, _, kind, .., last] if *kind == "advancements" && last.to_string_lossy().ends_with(".json") => Extension::Advancement,
-			[_, _, kind, .., last] if *kind == "loot_tables" && last.to_string_lossy().ends_with(".json") => Extension::LootTable,
-			[_, _, kind, .., last] if *kind == "loot_tables" && last.to_string_lossy().ends_with(".ult") => Extension::UnifiedLootTable,
-			[_, _, kind, tag_kind, .., last] if *kind == "tags" && last.to_string_lossy().ends_with(".json") => match tag_kind.to_str() {
-				Some("functions") => Extension::Tags(TagKind::Function),
-				Some("blocks") => Extension::Tags(TagKind::Block),
-				Some("items") => Extension::Tags(TagKind::Item),
-				Some("entities_type") => Extension::Tags(TagKind::Entity),
-				_ => Extension::Tags(TagKind::Other)
-			},
-			[item] if *item == "pack.mcmeta" => Extension::PackMeta,
+			[item] if Extension::is_meta(item) => Extension::PackMeta,
+			[_, _, kind, tag_kind, .., last] if Extension::is_tags(kind, last) => Extension::Tags(TagKind::from(tag_kind)),
+			[_, _, kind, .., last] => Extension::from_str(kind, last),
 			_ => Extension::Other
 		}
 	}
