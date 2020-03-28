@@ -21,21 +21,14 @@ impl Resource {
 	}
 
 	pub fn pre_process<'a>(&'a self, context: &mut Context<'a>) {
-		match self.get_extension() {
-			Extension::Advancement => context.add_advancement(&self),
-			Extension::Function => context.add_function(&self),
-			Extension::LootTable => context.add_loot_table(&self),
-			Extension::Tags(_) => context.add_tags(&self),
-			Extension::PackMeta => context.set_meta(&self),
-			_ => ()
-		}
+		context.insert_item(self);
 	}
 
 	pub fn process(&self, context: &mut Context) -> PResult<Vec<crate::error::PError>> {
 		match self.get_extension() {
 			Extension::Function => FunctionProcessor::process(&self, context),
 			Extension::Advancement => AdvancementProcessor::process(&self, context),
-			Extension::Tags(_) => TagsProcessor::process(&self, context),
+			Extension::Tags(kind) => TagsProcessor::process(&self, context.with_tagkind(kind)),
 			_ => Ok(Vec::default())
 		}
 	}

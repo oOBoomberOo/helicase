@@ -27,7 +27,7 @@ impl Datapack {
 			.flatten()
 			.collect();
 
-		let context = &mut Context::default();
+		let context = &mut Context::new();
 
 		resources.iter().for_each(|x| x.pre_process(context));
 
