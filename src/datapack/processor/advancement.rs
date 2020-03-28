@@ -31,7 +31,7 @@ impl AdvancementProcessor {
 
 impl Processor for AdvancementProcessor {
 	fn process(resource: &Resource, context: &mut Context) -> PResult<Vec<PError>> {
-		let content = fs::read_to_string(&resource.physical)?;
+		let content = resource.read()?;
 		let advancement: AdvancementProcessor = serde_json::from_str(&content)?;
 
 		let mut result = Vec::new();

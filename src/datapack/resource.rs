@@ -66,8 +66,8 @@ impl Resource {
 		}
 	}
 
-	pub fn read(&self) -> io::Result<File> {
-		File::open(&self.physical)
+	pub fn read(&self) -> io::Result<String> {
+		fs::read_to_string(&self.physical)
 	}
 
 	pub fn namespace(&self) -> Namespace {

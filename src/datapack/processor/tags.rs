@@ -43,7 +43,7 @@ impl TagsProcessor {
 
 impl Processor for TagsProcessor {
 	fn process(resource: &Resource, context: &mut Context) -> PResult<Vec<PError>> {
-		let content = fs::read_to_string(&resource.physical)?;
+		let content = resource.read()?;
 		let tags: TagsProcessor = serde_json::from_str(&content)?;
 		let result = tags.values
 			.iter()
