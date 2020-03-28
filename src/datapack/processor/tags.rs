@@ -1,53 +1,78 @@
 use super::prelude::*;
 use serde::{Serialize, Deserialize};
-use std::fs;
 use crate::datapack::prelude::{Extension, TagKind, NamespaceKind};
 use crate::utils::get_json_field;
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct TagsProcessor {
-	replace: Option<bool>,
-	values: Vec<String>,
+#[derive(Debug)]
+pub struct TagsProcessor<'a> {
+	content: &'a str,
+	template: TagsTemplate,
+	resource: &'a Resource,
 }
 
-impl TagsProcessor {
-	fn process_each_value(&self, content: &str, path: &str, resource: &Resource, context: &mut Context) -> impl Iterator<Item = TagsError> {
-		let kind = match resource.get_extension() {
+impl<'a> TagsProcessor<'a> {
+	fn new(template: TagsTemplate, content: &'a str, resource: &'a Resource) -> TagsProcessor<'a> {
+		TagsProcessor {
+			content,
+			template,
+			resource,
+		}
+	}
+
+	fn path_list(&self) -> &[String] {
+		&self.template.values
+	}
+	
+	fn process_each_value(&self, path: &str, context: &mut Context) -> Option<TagsError> {
+		let extension = self.resource.get_extension();
+		let kind = match extension {
 			Extension::Tags(v) => v,
 			_ => TagKind::Other,
 		};
 
-		let mut result = Vec::new();
-
 		match kind {
-			TagKind::Function => result.push(self.with_function_tags(content, path, resource, context)),
-			_ => ()
-		};
+			TagKind::Function => self.with_function_tags(path, context),
+			TagKind::Block => self.with_block_tags(),
+			TagKind::Item => self.with_item_tags(),
+			TagKind::Entity => self.with_entity_tags(),
+			_ => None
+		}
+	}
 
-		result.into_iter().flatten()
+	fn with_entity_tags(&self) -> Option<TagsError> {
+		todo!()
+	}
+
+	fn with_item_tags(&self) -> Option<TagsError> {
+		todo!()
+	}
+
+	fn with_block_tags(&self) -> Option<TagsError> {
+		todo!()
 	}
 	
-	fn with_function_tags(&self, content: &str, path: &str, resource: &Resource, context: &mut Context) -> Vec<TagsError> {
-		let mut errors = Vec::new();
+	fn with_function_tags(&self, path: &str, context: &mut Context) -> Option<TagsError> {
 		let namespace = Namespace::new(path, NamespaceKind::Function);
 		if !namespace.exist(context) {
-			let range = get_json_field(content, path);
+			let range = get_json_field(self.content, path);
 			let content = namespace;
-			let span = Span::new(resource.id, content, range);
-			errors.push(TagsError::FunctionNotFound(span));
-		}
-		
-		errors
+			let span = Span::new(self.resource.id, content, range);
+			return TagsError::FunctionNotFound(span).into();
+		};
+
+		None
 	}
 }
 
-impl Processor for TagsProcessor {
+impl<'a> Processor for TagsProcessor<'a> {
 	fn process(resource: &Resource, context: &mut Context) -> PResult<Vec<PError>> {
 		let content = resource.read()?;
-		let tags: TagsProcessor = serde_json::from_str(&content)?;
-		let result = tags.values
+		let template: TagsTemplate = serde_json::from_str(&content)?;
+		let tags = TagsProcessor::new(template, &content, resource);
+
+		let result = tags.path_list()
 			.iter()
-			.flat_map(|path| tags.process_each_value(&content, path, resource, context))
+			.filter_map(|path| tags.process_each_value(path, context))
 			.map(PError::from)
 			.collect();
 		Ok(result)
@@ -74,4 +99,10 @@ impl ProcessorError for TagsError {
 			}
 		}
 	}
+}
+
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Clone)]
+struct TagsTemplate {
+	replace: Option<bool>,
+	values: Vec<String>
 }
