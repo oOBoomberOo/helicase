@@ -18,7 +18,7 @@ pub trait ProcessorError: Debug + Display {
 
 pub mod prelude {
 	pub use super::span::Span;
-	pub use super::function::FunctionProcessor;
+	pub use super::function::{FunctionProcessor, FunctionError};
 	pub use super::advancement::{AdvancementProcessor, AdvancementError};
 	pub use super::tags::{TagsProcessor, TagsError};
 	pub use crate::datapack::prelude::{Resource, Context, PResult, PError, Namespace};

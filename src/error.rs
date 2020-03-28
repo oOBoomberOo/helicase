@@ -14,6 +14,7 @@ pub enum PError {
 	StripPrefix(StripPrefixError),
 	Serde(js::Error),
 	Advancement(AdvancementError),
+	Function(FunctionError),
 	Tags(TagsError),
 }
 
@@ -26,6 +27,7 @@ impl fmt::Display for PError {
 			PError::StripPrefix(error) => write!(f, "{}", error),
 			PError::Serde(error) => write!(f, "{}", error),
 			PError::Advancement(error) => write!(f, "{}", error),
+			PError::Function(error) => write!(f, "{}", error),
 			PError::Tags(error) => write!(f, "{}", error),
 		}
 	}
@@ -55,6 +57,7 @@ impl ProcessorError for PError {
 					.with_message(message)
 			},
 			PError::Advancement(error) => error.report(message),
+			PError::Function(error) => error.report(message),
 			PError::Tags(error) => error.report(message)
 		}
 	}
@@ -78,5 +81,6 @@ quick_from!{
 	StripPrefixError => StripPrefix,
 	js::Error => Serde,
 	AdvancementError => Advancement,
+	FunctionError => Function,
 	TagsError => Tags
 }
