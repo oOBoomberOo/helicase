@@ -11,7 +11,6 @@ pub struct Resource {
 use std::ffi::OsStr;
 use std::fs::DirEntry;
 use std::fs;
-use std::fs::File;
 use std::io;
 impl Resource {
 	pub fn new(relative: impl Into<PathBuf>, physical: impl Into<PathBuf>, id: usize) -> Resource {

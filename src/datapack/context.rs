@@ -25,13 +25,18 @@ impl<'a> Context<'a> {
 
 	pub fn insert_item(&mut self, resource: &'a Resource) -> &mut Context<'a> {
 		let namespace = resource.namespace();
-		match resource.get_extension() {
+		let extension = resource.get_extension();
+		match extension {
 			Extension::Function => self.function_list.insert(namespace, resource),
 			Extension::Advancement => self.advancement_list.insert(namespace, resource),
 			Extension::LootTable => self.loot_table_list.insert(namespace, resource),
 			Extension::Tags(_) => self.tags_list.insert(namespace, resource),
 			_ => None
 		};
+
+		if extension == Extension::PackMeta {
+			self.with_meta(resource);
+		}
 
 		self
 	}
